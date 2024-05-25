@@ -26,4 +26,5 @@ SET(lib_srcs
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}})
 
 ADD_EXECUTABLE(bpo-demo main.cpp ${lib_hdrs} ${lib_srcs})
+TARGET_COMPILE_FEATURES(bpo-demo PRIVATE cxx_std_11)
 TARGET_LINK_LIBRARIES(bpo-demo ${Boost_LIBRARIES})

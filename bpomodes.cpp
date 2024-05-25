@@ -19,16 +19,28 @@ BpoModes::BpoModes(const BoostPO::options_description& opts, bool add_help)
 
 BpoModes& BpoModes::add(const std::string& mode,
                         const BoostPO::options_description& opts,
-                        ModeHandler handler) {
+                        HandlerSP handler) {
+  if (!handler) {
+    handler.reset(new ModeHandler);
+  }
+
   subcommands.emplace(std::make_pair(mode, SubCommand { opts, handler }));
+
   return *this;
 }
 
+
+/** Digest the command-line arguments
+ *
+ *  This operates in two phases, first handling the shared options,
+ *  and then passing runhandled arguments to a second parser
+ *  customized for the selected subcommand.
+ */
 BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
   BoostPO::variables_map varmap;
   bool print_help = false;
   std::string subcommand;
-  std::map<std::string, SubCommand>::iterator subhandler;
+  std::map<std::string, SubCommand>::iterator subhandler = subcommands.end();
 
   if (!opts_finalized) finalizeCommon();
 
@@ -49,13 +61,12 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
 
     try {
       subcommand = varmap["subcommand"].as<std::string>();
+      subhandler = subcommands.find(subcommand);
     } catch (std::exception& ex) {
       // Ignore
     }
 
     if (!print_help) {
-      subhandler = subcommands.find(subcommand);
-
       if (subhandler == subcommands.cend()) {
         throw BoostPO::validation_error(BoostPO::validation_error::invalid_option,
                                         subcommand, "subcommand");
@@ -90,6 +101,17 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
 }
 
 
+int BpoModes::run_subcommand(const BoostPO::variables_map& varmap) {
+  if (!selected_handler) {
+    throw BoostPO::validation_error(BoostPO::validation_error::invalid_option,
+                                    "nullptr", "subcommand");
+  }
+
+  return selected_handler->run(varmap);
+}
+
+
+/** Finalize the shared options_description once all subcommands are known */
 void BpoModes::finalizeCommon(bool add_help) {
   if (add_help) {
     common_opts.add_options()
@@ -119,11 +141,15 @@ void BpoModes::finalizeCommon(bool add_help) {
 
 void BpoModes::handleSub(const std::string& mode, SubCommand& subcmd,
                          const std::vector<std::string>& args,
-                         BoostPO::variables_map& varmap) const {
-  BoostPO::store(BoostPO::command_line_parser(args)
-                    .options(subcmd.opts).run(), varmap);
+                         BoostPO::variables_map& varmap) {
+  selected_handler = subcmd.handler;
 
-  subcmd.handler.ingest(varmap);
+  auto parser =
+    BoostPO::command_line_parser(args)
+      .options(subcmd.opts);
+
+  BoostPO::store(selected_handler->prepare(parser).run(), varmap);
+  selected_handler->ingest(varmap);
 }
 
 // (C)Copyright 2024, RW Penney

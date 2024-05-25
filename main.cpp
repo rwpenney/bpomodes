@@ -11,15 +11,26 @@
 namespace BoostPO = boost::program_options;
 
 
-int main(int argc, char* argv[])
-{
+struct TwoProc: public BpoModes::ModeHandler {
+  int run(const BoostPO::variables_map& varmap) {
+    std::cerr << "RUNNING TWO:" << std::endl
+              << "  logfile: " << varmap["logfile"].as<std::string>() << std::endl
+              << "  loglevel: " << varmap["loglevel"].as<int>() << std::endl
+              << "  things: " << varmap["things"].as<std::string>() << std::endl;
 
-  BoostPO::options_description generic_opts("bpomodes demo"),
+    return 17;
+  }
+};
+
+int main(int argc, char* argv[])
+{ BoostPO::options_description generic_opts("bpomodes demo"),
                                opts1("mode one"), opts2("mode two"), opts3("mode three");
 
   generic_opts.add_options()
-    ("logfile,L", "location of logfile")
-    ("loglevel", "logging level");
+    ("logfile,L",
+      BoostPO::value<std::string>()->default_value("/dev/null"), "location of logfile")
+    ("loglevel",
+      BoostPO::value<int>()->default_value(1), "logging level");
 
   BpoModes parser(generic_opts);
 
@@ -29,7 +40,7 @@ int main(int argc, char* argv[])
 
   opts2.add_options()
     ("things", BoostPO::value<std::string>()->default_value("junk"), "get things");
-  parser.add("two", opts2);
+  parser.add("two", opts2, std::make_shared<TwoProc>());
 
   opts3.add_options()
     ("doobry", "put doobry");
@@ -41,6 +52,8 @@ int main(int argc, char* argv[])
   for (auto v : vm) {
     std::cout << v.first << "= ???" << std::endl;
   }
+
+  parser.run_subcommand(vm);
 
   return 0;
 }
