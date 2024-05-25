@@ -1,0 +1,10 @@
+.*.swp
+DoxyDocs/*
+CMakeCache.txt
+CMakeFiles/*
+CTestTestfile.cmake
+cmake*.cmake
+Makefile
+Testing/*
+
+bpo-demo
