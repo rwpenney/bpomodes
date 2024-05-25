@@ -17,30 +17,33 @@ class BpoModes {
     BpoModes(const boost::program_options::options_description& common,
              bool add_help=true);
 
-    struct ParserInit {
+    struct ModeHandler {
       virtual void operator()(boost::program_options::command_line_parser&) {}
-      virtual int invoke(const boost::program_options::variables_map&) {
-        return 0; }
+      virtual void ingest(const boost::program_options::variables_map&) {}
     };
 
     BpoModes& add(const std::string& subcmd,
                   const boost::program_options::options_description&,
-                  ParserInit init=ParserInit());
+                  ModeHandler handler=ModeHandler());
 
     boost::program_options::variables_map parse(int argc, char** argv);
 
   protected:
-    boost::program_options::options_description common_opts;
-
     struct SubCommand {
       boost::program_options::options_description opts;
-      ParserInit init;
+      ModeHandler handler;
     };
+
+    bool add_help;
+    bool opts_finalized;
+    boost::program_options::options_description common_opts;
 
     std::map<std::string, SubCommand> subcommands;
 
-    void prepareCommon(bool add_help=true);
-    void handleSub(const std::string& mode,
+    void finalizeCommon(bool add_help=true);
+    void handleSub(const std::string& mode, SubCommand& cmd,
                    const std::vector<std::string>& args,
                    boost::program_options::variables_map&) const;
 };
+
+// (C)Copyright 2024, RW Penney

@@ -9,21 +9,18 @@
 namespace BoostPO = boost::program_options;
 
 
-BpoModes::BpoModes() {
-  prepareCommon();
-}
+BpoModes::BpoModes()
+  : add_help(true), opts_finalized(false) {}
 
 
 BpoModes::BpoModes(const BoostPO::options_description& opts, bool add_help)
-  : common_opts(opts) {
-  prepareCommon(add_help);
-}
+  : add_help(add_help), opts_finalized(false), common_opts(opts) {}
 
 
 BpoModes& BpoModes::add(const std::string& mode,
                         const BoostPO::options_description& opts,
-                        ParserInit init) {
-  subcommands.emplace(std::make_pair(mode, SubCommand { opts, init }));
+                        ModeHandler handler) {
+  subcommands.emplace(std::make_pair(mode, SubCommand { opts, handler }));
   return *this;
 }
 
@@ -31,10 +28,11 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
   BoostPO::variables_map varmap;
   bool print_help = false;
   std::string subcommand;
+  std::map<std::string, SubCommand>::iterator subhandler;
+
+  if (!opts_finalized) finalizeCommon();
 
   try {
-    //BoostPO::command_line_parser parser(argc, argv);
-
     BoostPO::positional_options_description podesc;
     podesc.add("subcommand", 1)
           .add("subcmd_args", -1);
@@ -56,23 +54,33 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
     }
 
     if (!print_help) {
+      subhandler = subcommands.find(subcommand);
+
+      if (subhandler == subcommands.cend()) {
+        throw BoostPO::validation_error(BoostPO::validation_error::invalid_option,
+                                        subcommand, "subcommand");
+      }
+
       std::vector<std::string> sub_args =
         BoostPO::collect_unrecognized(parsed.options, BoostPO::include_positional);
       sub_args.erase(sub_args.begin());
-      handleSub(subcommand, sub_args, varmap);
+      handleSub(subcommand, subhandler->second, sub_args, varmap);
     }
   } catch (BoostPO::error& ex) {
     std::cerr << argv[0] << ": " << ex.what() << std::endl << std::endl
               << common_opts << std::endl;
+
+    if (subhandler != subcommands.cend()) {
+      std::cerr << subhandler->second.opts << std::endl;
+    }
     exit(1);
   }
 
   if (print_help) {
     std::cout << common_opts << std::endl;
 
-    const auto subcmd = subcommands.find(subcommand);
-    if (subcmd != subcommands.cend()) {
-      std::cout << subcmd->second.opts << std::endl;
+    if (subhandler != subcommands.cend()) {
+      std::cout << subhandler->second.opts << std::endl;
     }
 
     exit(0);
@@ -82,40 +90,40 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
 }
 
 
-void BpoModes::prepareCommon(bool add_help) {
+void BpoModes::finalizeCommon(bool add_help) {
   if (add_help) {
     common_opts.add_options()
       ("help,h", "Show usage information");
   }
 
+  std::stringstream strm;
+  bool first = true;
+
+  strm << "subcommand [";
+  for (auto cmd : subcommands) {
+    strm << (first ? "" : "|")
+         << cmd.first;
+    first = false;
+  }
+  strm << "]";
+
   common_opts.add_options()
     ("subcommand",
-      BoostPO::value<std::string>(), "subcommand")
+      BoostPO::value<std::string>(), strm.str().c_str())
     ("subcmd_args",
       BoostPO::value<std::vector<std::string>>(), "subcommand arguments");
+
+  opts_finalized = true;
 }
 
 
-void BpoModes::handleSub(const std::string& mode,
+void BpoModes::handleSub(const std::string& mode, SubCommand& subcmd,
                          const std::vector<std::string>& args,
                          BoostPO::variables_map& varmap) const {
-  const auto subcmd = subcommands.find(mode);
-
-  if (subcmd == subcommands.cend()) {
-    std::stringstream strm;
-    bool first = true;
-
-    strm << "subcommand=[";
-    for (auto cmd : subcommands) {
-      strm << (first ? "" : "|")
-           << cmd.first;
-      first = false;
-    }
-    strm << "]";
-
-    throw BoostPO::error(strm.str());
-  }
-
   BoostPO::store(BoostPO::command_line_parser(args)
-                    .options(subcmd->second.opts).run(), varmap);
+                    .options(subcmd.opts).run(), varmap);
+
+  subcmd.handler.ingest(varmap);
 }
+
+// (C)Copyright 2024, RW Penney
