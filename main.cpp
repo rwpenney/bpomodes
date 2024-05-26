@@ -1,5 +1,5 @@
 /*
- *  Boost program-options with subcommand handling
+ *  Basic demonstration of Boost program-options with subcommand handling
  *  RW Penney, May 2024
  */
 
@@ -21,6 +21,7 @@ struct TwoProc: public BpoModes::ModeHandler {
     return 17;
   }
 };
+
 
 int main(int argc, char* argv[])
 { BoostPO::options_description generic_opts("bpomodes demo"),
@@ -45,7 +46,7 @@ int main(int argc, char* argv[])
   opts3.add_options()
     ("doobry", "put doobry");
   parser.add("three", opts3);
-  
+
   const auto vm = parser.parse(argc, argv);
 
   std::cout << "VARIABLES: " << std::endl;

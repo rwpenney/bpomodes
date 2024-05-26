@@ -25,6 +25,7 @@ BpoModes& BpoModes::add(const std::string& mode,
   }
 
   subcommands.emplace(std::make_pair(mode, SubCommand { opts, handler }));
+  selected_subcmd = subcommands.end();
 
   return *this;
 }
@@ -38,11 +39,11 @@ BpoModes& BpoModes::add(const std::string& mode,
  */
 BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
   BoostPO::variables_map varmap;
-  bool print_help = false;
   std::string subcommand;
-  std::map<std::string, SubCommand>::iterator subhandler = subcommands.end();
+  bool print_help = false;
 
   if (!opts_finalized) finalizeCommon();
+  selected_subcmd = subcommands.end();
 
   try {
     BoostPO::positional_options_description podesc;
@@ -61,13 +62,13 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
 
     try {
       subcommand = varmap["subcommand"].as<std::string>();
-      subhandler = subcommands.find(subcommand);
+      selected_subcmd = subcommands.find(subcommand);
     } catch (std::exception& ex) {
-      // Ignore
+      // Postpone handling unresolved subcommands
     }
 
     if (!print_help) {
-      if (subhandler == subcommands.cend()) {
+      if (selected_subcmd == subcommands.cend()) {
         throw BoostPO::validation_error(BoostPO::validation_error::invalid_option,
                                         subcommand, "subcommand");
       }
@@ -75,25 +76,17 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
       std::vector<std::string> sub_args =
         BoostPO::collect_unrecognized(parsed.options, BoostPO::include_positional);
       sub_args.erase(sub_args.begin());
-      handleSub(subcommand, subhandler->second, sub_args, varmap);
+
+      handleSub(selected_subcmd->second, sub_args, varmap);
     }
   } catch (BoostPO::error& ex) {
-    std::cerr << argv[0] << ": " << ex.what() << std::endl << std::endl
-              << common_opts << std::endl;
-
-    if (subhandler != subcommands.cend()) {
-      std::cerr << subhandler->second.opts << std::endl;
-    }
+    std::cerr << argv[0] << ": " << ex.what() << std::endl << std::endl;
+    printOpts(std::cerr);
     exit(1);
   }
 
   if (print_help) {
-    std::cout << common_opts << std::endl;
-
-    if (subhandler != subcommands.cend()) {
-      std::cout << subhandler->second.opts << std::endl;
-    }
-
+    printOpts(std::cout);
     exit(0);
   }
 
@@ -102,12 +95,13 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
 
 
 int BpoModes::run_subcommand(const BoostPO::variables_map& varmap) {
-  if (!selected_handler) {
+  if (selected_subcmd == subcommands.end()
+      || !selected_subcmd->second.handler) {
     throw BoostPO::validation_error(BoostPO::validation_error::invalid_option,
                                     "nullptr", "subcommand");
   }
 
-  return selected_handler->run(varmap);
+  return selected_subcmd->second.handler->run(varmap);
 }
 
 
@@ -139,10 +133,10 @@ void BpoModes::finalizeCommon(bool add_help) {
 }
 
 
-void BpoModes::handleSub(const std::string& mode, SubCommand& subcmd,
+void BpoModes::handleSub(SubCommand& subcmd,
                          const std::vector<std::string>& args,
                          BoostPO::variables_map& varmap) {
-  selected_handler = subcmd.handler;
+  HandlerSP selected_handler = subcmd.handler;
 
   auto parser =
     BoostPO::command_line_parser(args)
@@ -150,6 +144,17 @@ void BpoModes::handleSub(const std::string& mode, SubCommand& subcmd,
 
   BoostPO::store(selected_handler->prepare(parser).run(), varmap);
   selected_handler->ingest(varmap);
+}
+
+
+std::ostream& BpoModes::printOpts(std::ostream& strm) {
+  strm << common_opts << std::endl;
+
+  if (selected_subcmd != subcommands.cend()) {
+    strm << selected_subcmd->second.opts << std::endl;
+  }
+
+  return strm;
 }
 
 // (C)Copyright 2024, RW Penney

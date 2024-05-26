@@ -33,7 +33,7 @@ class BpoModes {
       /** Optionally update internal state after variables-map has been finalized */
       virtual void ingest(const boost::program_options::variables_map&) {}
 
-      /** Application entry-point for handling the selected subprogram */
+      /** Entry-point for main() to delegate to the selected subprogram */
       virtual int run(const boost::program_options::variables_map&) {
         return 0; }
     };
@@ -58,14 +58,15 @@ class BpoModes {
     bool opts_finalized;
     boost::program_options::options_description common_opts;
 
-    HandlerSP selected_handler;
-
-    std::map<std::string, SubCommand> subcommands;
+    using SubCmdMap = std::map<std::string, SubCommand>;
+    SubCmdMap subcommands;
+    SubCmdMap::iterator selected_subcmd;
 
     void finalizeCommon(bool add_help=true);
-    void handleSub(const std::string& mode, SubCommand& cmd,
-                   const std::vector<std::string>& args,
+    void handleSub(SubCommand& cmd, const std::vector<std::string>& args,
                    boost::program_options::variables_map&);
+
+    std::ostream& printOpts(std::ostream&);
 };
 
 // (C)Copyright 2024, RW Penney
