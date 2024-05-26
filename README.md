@@ -18,3 +18,37 @@ and handles command-line combinations such as:
 
 This library was originally influenced by
 [A.Rankine's GitHub gist](https://gist.github.com/randomphrase/10801888)
+
+
+## Usage
+
+The library consists of a single class, `BpoModes`, which manages
+a collection of `boost::program_options::options_description` objects,
+one for each subcommand, and another that represent options shared
+by all subcommands. In its simplest form, one simply populates
+each of these `options_description` objects and passes them
+to `BpoModes::add()`, and then calls the `parse()` method to
+generate a `variables_map`:
+
+    using namespace boost::program_options;
+    options_description generic_options, options_one, options_two;
+
+    generic_options.add_options()
+        /* add generic and subcommand options */ ;
+
+    BpoModes parser(generic_options);
+
+    parser.add("subcommand_one", options_one);
+    parser.add("subcommand_two", options_two);
+
+    const auto varmap = parser.parse(argc, argv);
+
+The vield `varmap["subcommand"].as<std::string>()` will be populated
+with the name of the subcommand as passed to the `BpoModes::add()` method.
+
+More sophisticated usecases can use the third, optional, argument
+to `BpoModes::add()`, which should be a subclass of `BpoModes::ModeHandler`.
+That interface provides three customization points for setting up
+the underlying `command_line_parser` before it sees the vector
+of command-line arguments; or for providing an entry-point that can
+be called from `main()` to delegate processing of the subcommand.

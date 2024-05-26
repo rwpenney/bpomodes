@@ -37,7 +37,8 @@ BpoModes& BpoModes::add(const std::string& mode,
  *  and then passing runhandled arguments to a second parser
  *  customized for the selected subcommand.
  */
-BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
+BoostPO::variables_map BpoModes::parse(const std::string& progname,
+                                       BoostPO::command_line_parser&& parser) {
   BoostPO::variables_map varmap;
   std::string subcommand;
   bool print_help = false;
@@ -50,14 +51,13 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
     podesc.add("subcommand", 1)
           .add("subcmd_args", -1);
 
-    BoostPO::parsed_options parsed =
-      BoostPO::command_line_parser(argc, argv)
-        .options(common_opts)
-        .positional(podesc)
-        .allow_unregistered()
-        .run();
+    BoostPO::parsed_options parsed_opts =
+      parser.options(common_opts)
+            .positional(podesc)
+            .allow_unregistered()
+            .run();
 
-    BoostPO::store(parsed, varmap);
+    BoostPO::store(parsed_opts, varmap);
     print_help = (varmap.count("help") > 0);
 
     try {
@@ -74,13 +74,14 @@ BoostPO::variables_map BpoModes::parse(int argc, char* argv[]) {
       }
 
       std::vector<std::string> sub_args =
-        BoostPO::collect_unrecognized(parsed.options, BoostPO::include_positional);
+        BoostPO::collect_unrecognized(parsed_opts.options,
+                                      BoostPO::include_positional);
       sub_args.erase(sub_args.begin());
 
       handleSub(selected_subcmd->second, sub_args, varmap);
     }
   } catch (BoostPO::error& ex) {
-    std::cerr << argv[0] << ": " << ex.what() << std::endl << std::endl;
+    std::cerr << progname << ": " << ex.what() << std::endl << std::endl;
     printOpts(std::cerr);
     exit(1);
   }

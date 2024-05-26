@@ -45,7 +45,14 @@ class BpoModes {
                   const boost::program_options::options_description&,
                   HandlerSP handler=nullptr);
 
-    boost::program_options::variables_map parse(int argc, char** argv);
+    boost::program_options::variables_map parse(int argc, char** argv) {
+      return parse((argc > 0 ? argv[0] : ""),
+                   boost::program_options::command_line_parser(argc, argv)); }
+    boost::program_options::variables_map parse(const std::string& progname,
+                                                const std::vector<std::string>& args) {
+      return parse(progname, boost::program_options::command_line_parser(args)); }
+
+
     int run_subcommand(const boost::program_options::variables_map&);
 
   protected:
@@ -61,6 +68,9 @@ class BpoModes {
     using SubCmdMap = std::map<std::string, SubCommand>;
     SubCmdMap subcommands;
     SubCmdMap::iterator selected_subcmd;
+
+    boost::program_options::variables_map parse(const std::string& progname,
+                                                boost::program_options::command_line_parser&&);
 
     void finalizeCommon(bool add_help=true);
     void handleSub(SubCommand& cmd, const std::vector<std::string>& args,
