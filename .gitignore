@@ -4,8 +4,10 @@ CMakeCache.txt
 CMakeFiles/*
 CTestTestfile.cmake
 cmake*.cmake
+install_manifest*
 Makefile
 Testing/*
 
 bpo-demo
+bpo-test
 libbpomodes*
