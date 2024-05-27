@@ -23,6 +23,8 @@ class BpoModes {
     BpoModes(const boost::program_options::options_description& common,
              bool add_help=true);
 
+    std::string subcommand_param = "subcommand";
+
     /** Mechanism for handling mode-specific parser setup and extraction */
     struct ModeHandler {
       /** Optionally reconfigure the parser before passing command-line arguments */
@@ -61,13 +63,17 @@ class BpoModes {
       HandlerSP handler;
     };
 
+    const std::string subcmd_args_param = "_subcmd_args";
+
     bool add_help;
     bool opts_finalized;
     boost::program_options::options_description common_opts;
+    boost::program_options::options_description hidden_opts;
 
     using SubCmdMap = std::map<std::string, SubCommand>;
     SubCmdMap subcommands;
     SubCmdMap::iterator selected_subcmd;
+    std::string subcommandMenu(const std::string& sep="|") const;
 
     boost::program_options::variables_map parse(const std::string& progname,
                                                 boost::program_options::command_line_parser&&);

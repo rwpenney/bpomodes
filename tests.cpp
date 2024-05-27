@@ -37,15 +37,23 @@ void TestModes::basic() {
   { const auto vm = parser.parse("dummy_prog",
                                  split("-L 2 alpha --stuff lemon"));
 
-    check_vm_keys(vm, { "subcommand", "subcmd_args",
+    check_vm_keys(vm, { "subcommand",
                         "loglevel", "stuff" });
+
+    BOOST_CHECK_EQUAL(vm["loglevel"].as<int>(), 2);
+    BOOST_CHECK_EQUAL(vm["subcommand"].as<std::string>(), "alpha");
+    BOOST_CHECK_EQUAL(vm["stuff"].as<std::string>(), "lemon");
   }
 
   { const auto vm = parser.parse("dummy_prog",
                                  split("-L 3 beta --things 17"));
 
-    check_vm_keys(vm, { "subcommand", "subcmd_args",
+    check_vm_keys(vm, { "subcommand",
                         "loglevel", "things" });
+
+    BOOST_CHECK_EQUAL(vm["loglevel"].as<int>(), 3);
+    BOOST_CHECK_EQUAL(vm["subcommand"].as<std::string>(), "beta");
+    BOOST_CHECK_EQUAL(vm["things"].as<unsigned short>(),17);
   }
 
   { const auto vm = parser.parse("dummy_prog",
@@ -53,13 +61,21 @@ void TestModes::basic() {
 
     check_vm_keys(vm, { "subcommand",
                         "loglevel", "vacuum" });
+
+    BOOST_CHECK_EQUAL(vm["loglevel"].as<int>(), 5);
+    BOOST_CHECK_EQUAL(vm["subcommand"].as<std::string>(), "gamma");
+    BOOST_CHECK_EQUAL(vm["vacuum"].as<double>(), 0.0);
   }
 
   { const auto vm = parser.parse("dummy_prog",
                                  split("-L 7 gamma --vacuum 1e-15"));
 
-    check_vm_keys(vm, { "subcommand", "subcmd_args",
+    check_vm_keys(vm, { "subcommand",
                         "loglevel", "vacuum" });
+
+    BOOST_CHECK_EQUAL(vm["loglevel"].as<int>(), 7);
+    BOOST_CHECK_EQUAL(vm["subcommand"].as<std::string>(), "gamma");
+    BOOST_CHECK_EQUAL(vm["vacuum"].as<double>(), 1e-15);
   }
 }
 
