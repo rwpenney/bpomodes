@@ -46,6 +46,25 @@ struct TestModeAPI : TestSuite {
   TestModeAPI();
 
   static void basic();
+
+  struct HM: public BpoModes::ModeHandler {
+    unsigned prep_count = 0, ingest_count = 0, run_count = 0;
+
+    std::string vm_keys;
+
+    BoostPO::command_line_parser prepare(BoostPO::command_line_parser& p) {
+      ++prep_count; return p; }
+    void ingest(const BoostPO::variables_map& vm) {
+      std::stringstream strm;
+      bool first = true;
+      for (auto kv : vm) {
+        strm << (first ? "" : "|") << kv.first;
+        first = false; }
+      vm_keys = strm.str();
+      ++ingest_count; }
+    virtual int run(const BoostPO::variables_map& vm) {
+      ++run_count; return 7; }
+  };
 };
 
 

@@ -39,6 +39,7 @@ struct RootSuite : TestSuite {
     add(BOOST_TEST_CASE(splitting));
 
     add(new TestModes);
+    add(new TestModeAPI);
   }
 
   static void splitting() {

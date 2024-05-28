@@ -5,6 +5,10 @@ namespace bpomodes {
   namespace testing {
 
 
+/*
+ *  ==== TestModes ====
+ */
+
 TestModes::TestModes()
   : TestSuite("subcommand modes")
 {
@@ -77,6 +81,62 @@ void TestModes::basic() {
     BOOST_CHECK_EQUAL(vm["subcommand"].as<std::string>(), "gamma");
     BOOST_CHECK_EQUAL(vm["vacuum"].as<double>(), 1e-15);
   }
+}
+
+
+/*
+ *  ==== TestModeAPI ====
+ */
+
+ TestModeAPI::TestModeAPI()
+  : TestSuite("ModeHandler API")
+{
+  add(BOOST_TEST_CASE(basic));
+}
+
+
+void TestModeAPI::basic() {
+  BoostPO::options_description alpha_opts("mode alpha"), beta_opts("mode beta");
+  std::shared_ptr hm_alpha = std::make_shared<HM>(),
+                  hm_beta = std::make_shared<HM>();
+
+  BpoModes parser;
+  parser.subcommand_param = "the_mode";
+
+  alpha_opts.add_options()
+    ("a0", BoostPO::value<int>())
+    ("a1", BoostPO::value<int>())
+    ("a2", BoostPO::value<int>()->default_value(5));
+  parser.add("alpha", alpha_opts, hm_alpha);
+
+  beta_opts.add_options()
+    ("b0", BoostPO::value<int>())
+    ("b1", BoostPO::value<int>()->default_value(17))
+    ("b2", BoostPO::value<int>());
+  parser.add("beta", beta_opts, hm_beta);
+
+  BOOST_CHECK_EQUAL(hm_alpha->prep_count, 0);
+  BOOST_CHECK_EQUAL(hm_beta->prep_count, 0);
+
+  parser.parse("dummy_prog", split("alpha --a0 23"));
+  BOOST_CHECK_EQUAL(hm_alpha->prep_count, 1);
+  BOOST_CHECK_EQUAL(hm_alpha->ingest_count, 1);
+  BOOST_CHECK_EQUAL(hm_alpha->run_count, 0);
+  BOOST_CHECK_EQUAL(hm_alpha->vm_keys, "a0|a2|the_mode");
+
+  parser.parse("dummy_prog", split("beta --b1 23"));
+  BOOST_CHECK_EQUAL(hm_beta->prep_count, 1);
+  BOOST_CHECK_EQUAL(hm_beta->ingest_count, 1);
+  BOOST_CHECK_EQUAL(hm_beta->run_count, 0);
+  BOOST_CHECK_EQUAL(hm_beta->vm_keys, "b1|the_mode");
+
+  const auto vm = parser.parse("dummy_prog", split("beta --b0 17 --b2 29"));
+  const int stat = parser.run_subcommand(vm);
+  BOOST_CHECK_EQUAL(hm_beta->prep_count, 2);
+  BOOST_CHECK_EQUAL(hm_beta->ingest_count, 2);
+  BOOST_CHECK_EQUAL(hm_beta->run_count, 1);
+  BOOST_CHECK_EQUAL(hm_beta->vm_keys, "b0|b1|b2|the_mode");
+  BOOST_CHECK_EQUAL(stat, 7);
 }
 
 

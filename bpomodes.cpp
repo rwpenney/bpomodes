@@ -37,7 +37,7 @@ std::string BpoModes::subcommandMenu(const std::string& sep) const {
   bool first = true;
 
   for (auto cmd : subcommands) {
-    strm << (first ? "" : "|")
+    strm << (first ? "" : sep)
          << cmd.first;
     first = false;
   }
@@ -89,8 +89,10 @@ BoostPO::variables_map BpoModes::parse(const std::string& progname,
 
     if (!print_help) {
       if (selected_subcmd == subcommands.cend()) {
-        throw BoostPO::validation_error(BoostPO::validation_error::invalid_option,
-                                        subcommand, subcommand_param);
+        std::stringstream strm;
+        strm << subcommand_param << " \"" << subcommand << "\""
+             << " is not in { " << subcommandMenu(", ") << " }";
+        throw BoostPO::error(strm.str());
       }
 
       std::vector<std::string> sub_args =
@@ -110,6 +112,8 @@ BoostPO::variables_map BpoModes::parse(const std::string& progname,
     printOpts(std::cout);
     exit(0);
   }
+
+  BoostPO::notify(varmap);
 
   return varmap;
 }
@@ -138,7 +142,8 @@ void BpoModes::finalizeCommon(bool add_help) {
 
   hidden_opts.add_options()
     (subcommand_param.c_str(),
-      BoostPO::value<std::string>(), strm.str().c_str())
+      BoostPO::value<std::string>()->default_value("_default_"),
+      strm.str().c_str())
     (subcmd_args_param.c_str(),
       BoostPO::value<std::vector<std::string>>(), "subcommand arguments");
 
@@ -163,11 +168,11 @@ void BpoModes::handleSub(SubCommand& subcmd,
 std::ostream& BpoModes::printOpts(std::ostream& strm) {
   strm << common_opts
        << "  [" << subcommandMenu() << "]" << std::endl
-       << "  <subcommand_args> ..." << std::endl;
+       << "  <subcommand_args> ..." << std::endl
+       << std::endl;
 
   if (selected_subcmd != subcommands.cend()) {
-    strm << std::endl
-         << selected_subcmd->second.opts << std::endl;
+    strm << selected_subcmd->second.opts << std::endl;
   }
 
   return strm;
