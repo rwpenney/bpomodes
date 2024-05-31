@@ -39,9 +39,9 @@ INSTALL(TARGETS bpomodes LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib RUNTIME DESTINATION lib)
 INSTALL(FILES ${lib_hdrs} DESTINATION include)
 
-ADD_EXECUTABLE(bpo-demo main.cpp ${lib_hdrs} ${lib_srcs})
+ADD_EXECUTABLE(bpo-demo demo.cpp)
 TARGET_COMPILE_FEATURES(bpo-demo PRIVATE cxx_std_11)
-TARGET_LINK_LIBRARIES(bpo-demo ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(bpo-demo bpomodes ${Boost_LIBRARIES})
 
 ADD_EXECUTABLE(bpo-test ${lib_hdrs} testdefns.hpp ${lib_srcs} ${test_srcs})
 SET_TARGET_PROPERTIES(bpo-test

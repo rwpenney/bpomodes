@@ -52,3 +52,7 @@ That interface provides three customization points for setting up
 the underlying `command_line_parser` before it sees the vector
 of command-line arguments; or for providing an entry-point that can
 be called from `main()` to delegate processing of the subcommand.
+
+The [demo.cpp](demo.cpp) file shows more detail about how these components
+fit together. Running `./bpo-demo --help` will show information
+about the available subcommands.
