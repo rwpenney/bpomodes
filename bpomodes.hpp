@@ -27,6 +27,9 @@ class BpoModes {
 
     /** Mechanism for handling mode-specific parser setup and extraction */
     struct ModeHandler {
+      /** Optionally append lines to --help message */
+      virtual void append_help(std::ostream&) {}
+
       /** Optionally reconfigure the parser before passing command-line arguments */
       virtual boost::program_options::command_line_parser
       prepare(boost::program_options::command_line_parser& p) {

@@ -28,6 +28,7 @@ struct TestSuite: public BoostUT::test_suite {
 };
 
 
+/** Test behaviour when no subcommands are defined */
 struct TestBare : TestSuite {
   TestBare();
 
@@ -35,6 +36,7 @@ struct TestBare : TestSuite {
 };
 
 
+/** Test dispatch of option-handling across subcommands */
 struct TestModes : TestSuite {
   TestModes();
 
@@ -42,6 +44,7 @@ struct TestModes : TestSuite {
 };
 
 
+/** Test customization points offered via ModeHandler subclasses */
 struct TestModeAPI : TestSuite {
   TestModeAPI();
 

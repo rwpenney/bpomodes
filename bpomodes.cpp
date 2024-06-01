@@ -87,7 +87,7 @@ BoostPO::variables_map BpoModes::parse(const std::string& progname,
       // Postpone handling unresolved subcommands
     }
 
-    if (!print_help) {
+    if (!print_help && !subcommands.empty()) {
       if (selected_subcmd == subcommands.cend()) {
         std::stringstream strm;
         strm << subcommand_param << " \"" << subcommand << "\""
@@ -172,7 +172,9 @@ std::ostream& BpoModes::printOpts(std::ostream& strm) {
        << std::endl;
 
   if (selected_subcmd != subcommands.cend()) {
-    strm << selected_subcmd->second.opts << std::endl;
+    strm << selected_subcmd->second.opts;
+    selected_subcmd->second.handler->append_help(strm);
+    strm << std::endl;
   }
 
   return strm;

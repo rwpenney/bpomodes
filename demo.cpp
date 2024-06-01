@@ -24,6 +24,10 @@ struct TwoProc: public BpoModes::ModeHandler {
 struct ThreeProc: public BpoModes::ModeHandler {
   unsigned counter = 0;
 
+  void append_help(std::ostream& strm) {
+    strm << "Count in integer steps" << std::endl;
+  }
+
   void ingest(const BoostPO::variables_map& varmap) {
     counter = varmap["counter"].as<unsigned>();
   }

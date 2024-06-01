@@ -38,6 +38,7 @@ struct RootSuite : TestSuite {
   {
     add(BOOST_TEST_CASE(splitting));
 
+    add(new TestBare);
     add(new TestModes);
     add(new TestModeAPI);
   }

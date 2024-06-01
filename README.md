@@ -14,7 +14,22 @@ and handles command-line combinations such as:
     ./bpo-demo --help
     ./bpo-demo -h one
     ./bpo-demo --loglevel 17 two
-    ./bpo-demo --logfile some_path.txt three --doobry
+    ./bpo-demo --logfile some_path.txt three --counter 31
+
+The `-h` or `--help` options are automatically inserted into the common
+options, and generate mode-specific messages such as:
+
+    bpomodes demo:
+      -L [ --logfile ] arg (=/dev/null) location of logfile
+      --loglevel arg (=1)               logging level
+      -h [ --help ]                     Show usage information
+      [one|three|two]
+      <subcommand_args> ...
+
+    mode three:
+      -c [ --counter ] arg (=0) how many things to count
+
+    Count in integer steps
 
 This library was originally influenced by
 [A.Rankine's GitHub gist](https://gist.github.com/randomphrase/10801888)

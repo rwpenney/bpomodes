@@ -4,6 +4,45 @@
 namespace bpomodes {
   namespace testing {
 
+/*
+ *  ==== TestBare ====
+ */
+
+TestBare::TestBare()
+  : TestSuite("non-modal operation")
+{
+  add(BOOST_TEST_CASE(basic));
+}
+
+
+void TestBare::basic()
+{ BoostPO::options_description opts;
+
+  opts.add_options()
+    ("alpha,a", BoostPO::value<float>(), "alpha-param")
+    ("beta", BoostPO::value<double>()->default_value(3.14), "beta-param");
+
+  BpoModes parser(opts);
+
+  { const auto vm = parser.parse("dummy_prog", std::vector<std::string>());
+
+    BOOST_CHECK(vm.find("alpha") == vm.cend());
+    BOOST_CHECK_EQUAL(vm["beta"].as<double>(), 3.14);
+  }
+
+  { const auto vm = parser.parse("dummy_prog",
+                                 split("-a 1.25 --beta 6.28"));
+    BOOST_CHECK_EQUAL(vm["alpha"].as<float>(), 1.25f);
+    BOOST_CHECK_EQUAL(vm["beta"].as<double>(), 6.28);
+  }
+
+  { const auto vm = parser.parse("dummy_prog",
+                                 split("--alpha=2.5"));
+    BOOST_CHECK_EQUAL(vm["alpha"].as<float>(), 2.5f);
+    BOOST_CHECK_EQUAL(vm["beta"].as<double>(), 3.14);
+  }
+}
+
 
 /*
  *  ==== TestModes ====
