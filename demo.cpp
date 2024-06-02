@@ -10,6 +10,25 @@ namespace BoostPO = boost::program_options;
 
 
 struct TwoProc: public BpoModes::ModeHandler {
+  TwoProc() {
+    // Prepare positional parameters for later use within the prepare() method
+    podesc.add("source-file", 1)
+          .add("destination-file", 1);
+  }
+
+  BoostPO::positional_options_description podesc;
+
+  void append_help(std::ostream& strm) {
+    strm << "  source-file - input data source" << std::endl
+         << "  destination-file - output location" << std::endl;
+  }
+
+  BoostPO::command_line_parser& prepare(BoostPO::command_line_parser& parser) {
+    // NOTE that the positional_options_description must remain in scope
+    // until the parser's run() method is eventually called
+    return parser.positional(podesc);
+  }
+
   int run(const BoostPO::variables_map& varmap) {
     std::cerr << "RUNNING SUBCOMMAND TWO:" << std::endl
               << "  logfile: " << varmap["logfile"].as<std::string>() << std::endl
@@ -68,6 +87,8 @@ int main(int argc, char* argv[])
   // Define the options that will be usable in mode "one",
   // and add them to the parser together with a ModeHandler
   opts2.add_options()
+    ("source-file", BoostPO::value<std::string>(), "input data location")
+    ("destination-file",  BoostPO::value<std::string>(), "output data location")
     ("things", BoostPO::value<std::string>()->default_value("junk"), "get things");
   parser.add("two", opts2, std::make_shared<TwoProc>());
 

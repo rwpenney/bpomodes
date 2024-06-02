@@ -56,7 +56,7 @@ struct TestModeAPI : TestSuite {
 
     std::string vm_keys;
 
-    BoostPO::command_line_parser prepare(BoostPO::command_line_parser& p) {
+    BoostPO::command_line_parser& prepare(BoostPO::command_line_parser& p) {
       ++prep_count; return p; }
     void ingest(const BoostPO::variables_map& vm) {
       std::stringstream strm;

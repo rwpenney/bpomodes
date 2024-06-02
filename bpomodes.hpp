@@ -32,7 +32,7 @@ class BpoModes {
       virtual void append_help(std::ostream&) {}
 
       /** Optionally reconfigure the parser before passing command-line arguments */
-      virtual boost::program_options::command_line_parser
+      virtual boost::program_options::command_line_parser&
       prepare(boost::program_options::command_line_parser& p) {
         return p; }
 
