@@ -4,9 +4,8 @@ This is a simple wrapper for
 [boost::program_options](https://www.boost.org/doc/libs/1_85_0/doc/html/program_options.html)
 which allows basic handling of "subcommands" where a single C++ application
 provides multiple operating modes which each have their own configuration options.
-It is loosely analogous to the `add_subparsers()` functionality of
-[Python's argparse](https://docs.python.org/3/library/argparse.html) module,
-although far less polished.
+It is analogous to the `add_subparsers()` functionality of
+[Python's argparse](https://docs.python.org/3/library/argparse.html) module.
 
 The supplied demo application illustrates basic usage of the library
 and handles command-line combinations such as:
@@ -31,13 +30,13 @@ options, and generate mode-specific messages such as:
 
     Count in integer steps
 
-This library was originally influenced by
-[A.Rankine's GitHub gist](https://gist.github.com/randomphrase/10801888)
+`BpoModes` was originally influenced by
+[A.Rankine's GitHub gist](https://gist.github.com/randomphrase/10801888).
 
 
 ## Usage
 
-The library consists of a single class, `BpoModes`, which manages
+The library consists of a single C++11 class, `BpoModes`, which manages
 a collection of `boost::program_options::options_description` objects,
 one for each subcommand, and another that represent options shared
 by all subcommands. In its simplest form, one simply populates
@@ -61,7 +60,7 @@ generate a `variables_map`:
 The vield `varmap["subcommand"].as<std::string>()` will be populated
 with the name of the subcommand as passed to the `BpoModes::add()` method.
 
-More sophisticated usecases can use the third, optional, argument
+More sophisticated use-cases can use the third, optional, argument
 to `BpoModes::add()`, which should be a subclass of `BpoModes::ModeHandler`.
 That interface provides three customization points for setting up
 the underlying `command_line_parser` before it sees the vector

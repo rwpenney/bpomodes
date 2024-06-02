@@ -40,7 +40,8 @@ struct TestBare : TestSuite {
 struct TestModes : TestSuite {
   TestModes();
 
-  static void basic();
+  static void dispatch();
+  static void modename();
 };
 
 

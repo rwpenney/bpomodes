@@ -23,6 +23,7 @@ class BpoModes {
     BpoModes(const boost::program_options::options_description& common,
              bool add_help=true);
 
+    /** The field in the variables_map describing the user-selected subcommand */
     std::string subcommand_param = "subcommand";
 
     /** Mechanism for handling mode-specific parser setup and extraction */

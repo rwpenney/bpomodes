@@ -51,11 +51,12 @@ void TestBare::basic()
 TestModes::TestModes()
   : TestSuite("subcommand modes")
 {
-  add(BOOST_TEST_CASE(basic));
+  add(BOOST_TEST_CASE(dispatch));
+  add(BOOST_TEST_CASE(modename));
 }
 
 
-void TestModes::basic() {
+void TestModes::dispatch() {
   BoostPO::options_description common_opts("common_options"),
     alpha_opts("mode alpha"), beta_opts("mode beta"), gamma_opts("mode gamma");
 
@@ -119,6 +120,26 @@ void TestModes::basic() {
     BOOST_CHECK_EQUAL(vm["loglevel"].as<int>(), 7);
     BOOST_CHECK_EQUAL(vm["subcommand"].as<std::string>(), "gamma");
     BOOST_CHECK_EQUAL(vm["vacuum"].as<double>(), 1e-15);
+  }
+}
+
+
+void TestModes::modename() {
+  BoostPO::options_description common_opts, opts_alpha, opts_beta, opts_gamma;
+
+  auto parser = BpoModes(common_opts)
+                  .add("alpha", opts_alpha);
+
+  parser.subcommand_param = "chosen_mode";
+
+  parser.add("beta", opts_beta)
+        .add("gamma", opts_gamma);
+
+  const std::vector<std::string> modes = { "alpha", "beta", "gamma" };
+  for (auto m : modes) {
+    const auto vm = parser.parse("dummy_prog", { m });
+
+    BOOST_CHECK_EQUAL(vm["chosen_mode"].as<std::string>(), m);
   }
 }
 
