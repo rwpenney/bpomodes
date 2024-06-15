@@ -57,7 +57,7 @@ generate a `variables_map`:
 
     const auto varmap = parser.parse(argc, argv);
 
-The vield `varmap["subcommand"].as<std::string>()` will be populated
+The field `varmap["subcommand"].as<std::string>()` will be populated
 with the name of the subcommand as passed to the `BpoModes::add()` method.
 
 More sophisticated use-cases can use the third, optional, argument

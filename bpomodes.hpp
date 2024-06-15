@@ -39,7 +39,7 @@ class BpoModes {
       /** Optionally update internal state after variables-map has been finalized */
       virtual void ingest(const boost::program_options::variables_map&) {}
 
-      /** Entry-point for main() to delegate to the selected subprogram */
+      /** Entry-point for main() to delegate to the selected subprogram via BpoModes::run_subcommand() */
       virtual int run(const boost::program_options::variables_map&) {
         return 0; }
     };

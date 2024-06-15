@@ -50,8 +50,9 @@ struct TestModeAPI : TestSuite {
   TestModeAPI();
 
   static void basic();
+  static void positional();
 
-  struct HM: public BpoModes::ModeHandler {
+  struct MHstats: public BpoModes::ModeHandler {
     unsigned prep_count = 0, ingest_count = 0, run_count = 0;
 
     std::string vm_keys;
@@ -68,6 +69,13 @@ struct TestModeAPI : TestSuite {
       ++ingest_count; }
     virtual int run(const BoostPO::variables_map& vm) {
       ++run_count; return 7; }
+  };
+
+  struct MHpos: public BpoModes::ModeHandler {
+    MHpos(const BoostPO::positional_options_description& p): positional(p) {}
+    BoostPO::command_line_parser& prepare(BoostPO::command_line_parser& p) {
+      p.positional(positional); return p; }
+    BoostPO::positional_options_description positional;
   };
 };
 
